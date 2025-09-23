@@ -8,6 +8,7 @@ import UserList from "./pages/UserList";
 import UserDetails from "./pages/UserDetails";
 import NotFound from "./pages/NotFound";
 
+
 const App = () => {
   return (
     <>
