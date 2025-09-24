@@ -6,7 +6,7 @@ import LoginForm from "./pages/LoginForm";
 import UserList from "./pages/UserList";
 import UserDetails from "./pages/UserDetails"; // if you made this
 import NotFound from "./pages/NotFound"; // if you made this
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./pages/ProtectedRoute";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

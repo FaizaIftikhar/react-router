@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-export default function LoginForm() {
- const navigate=useNavigate();
+export default function LoginForm({ setIsLoggedIn }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -23,31 +22,19 @@ export default function LoginForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.email.trim() || !formData.password) {
-      setFormData((prev) => ({ ...prev, message: "Please fill all the fields" }));
-    } else {
       setFormData((prev) => ({
         ...prev,
-        message: `Welcome, ${formData.email}`,
-        email: "",
-        password: ""
+        message: "Please fill all the fields"
       }));
+    } else {
+      setIsLoggedIn(true); // ✅ mark as logged in
+      navigate("/users", { state: { username: formData.email } });
     }
-  };
-
-  // New: Reset all fields
-  const handleReset = () => {
-    setFormData({
-      email: "",
-      password: "",
-      showPassword: false,
-      message: ""
-    });
   };
 
   return (
     <form onSubmit={handleSubmit} className="login-container">
       <h2>Login</h2>
-
       <label>Email:</label>
       <input
         name="email"
@@ -56,7 +43,6 @@ export default function LoginForm() {
         onChange={handleChange}
         placeholder="you@example.com"
       />
-
       <label>Password:</label>
       <input
         name="password"
@@ -65,7 +51,6 @@ export default function LoginForm() {
         onChange={handleChange}
         placeholder="password"
       />
-
       <div className="checkbox">
         <label>
           <input
@@ -77,12 +62,12 @@ export default function LoginForm() {
           Show password
         </label>
       </div>
-
       <div className="buttons">
-        <button type="submit" onClick={()=>{navigate('/user')}}>Login</button>
-        <button type="button" onClick={handleReset}>Reset</button>
+        <button type="submit">Login</button>
+        <button type="button" onClick={() => navigate("/login")}>
+          Reset
+        </button>
       </div>
-
       {formData.message && <p>{formData.message}</p>}
     </form>
   );
