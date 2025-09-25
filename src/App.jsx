@@ -4,9 +4,11 @@ import { Routes, Route } from "react-router-dom";
 import About from "./pages/About";
 import LoginForm from "./pages/LoginForm";
 import UserList from "./pages/UserList";
-import UserDetails from "./pages/UserDetails"; // if you made this
-import NotFound from "./pages/NotFound"; // if you made this
+import UserDetails from "./pages/UserDetails"; 
+import NotFound from "./pages/NotFound"; 
 import ProtectedRoute from "./pages/ProtectedRoute";
+import SignupForm from "./pages/SignUp";
+import "./App.css"
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -42,6 +44,11 @@ const App = () => {
               <About />
             </ProtectedRoute>
           }
+        />
+        <Route path="*" element={<NotFound />} />
+      <Route
+          path="/SignUp"
+          element={<SignupForm/>}
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
