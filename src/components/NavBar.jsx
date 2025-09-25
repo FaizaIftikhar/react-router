@@ -1,21 +1,35 @@
-//now add link and to property and in to property i add the path
-import React from 'react'
-import {NavLink,useNavigate} from 'react-router-dom'
+import React from "react";
+import { NavLink } from "react-router-dom";
+import "./NavBar.css";
 
 const NavBar = () => {
-    const navigate=useNavigate();
   return (
-    <div>
-        <img src="" alt=""/>
-        <ul>
-            <NavLink to='/login'><li>Login Form</li></NavLink>
-            <NavLink to ='/user'><li>Users List </li></NavLink>
-            <NavLink to ='/about'><li>About</li></NavLink>
-        </ul>
-        <button onClick={()=>navigate('/about',{replace:true})}>Get Started</button>
-      
-    </div>
-  )
-}
+    <nav className="navbar">
 
-export default NavBar
+      <ul className="navbar-links">
+        <li>
+          <NavLink to="/login" className="nav-link">
+            Login
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/users" className="nav-link">
+            Users
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/about" className="nav-link">
+            About
+          </NavLink>
+        </li>
+         <li>
+          <NavLink to="/SignUp" className="nav-link">
+            Sign Up
+          </NavLink>
+        </li>
+      </ul>
+    </nav>
+  );
+};
+
+export default NavBar;
