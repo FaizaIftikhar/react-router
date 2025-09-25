@@ -1,3 +1,5 @@
+//in this folder we will wrap app component with browser router to
+//get support of browser roter in our project
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
