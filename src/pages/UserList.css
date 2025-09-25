@@ -1,40 +1,46 @@
-/* src/UsersList.css */
+.userlist-container {
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
 
-.users-list {
-  margin-top: 20px;
-  padding: 1.2rem;
-  border-radius: 10px;
+.userlist-container h2 {
+  color: #2563eb;
+  margin-bottom: 15px;
+}
+
+.userlist-input {
   width: 100%;
-  max-width: 350px;
-  box-sizing: border-box;
-  text-align: center;
-  transition: background-color 0.3s, color 0.3s;
-  word-wrap: break-word;
-}
-
-body.light .users-list {
-  background-color: #ffffff;
-  color: #000;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-body.dark .users-list {
-  background-color: #2c2c2c;
-  color: #fff;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.users-list button {
-  margin-top: 10px;
-  padding: 8px 16px;
-  border: none;
+  padding: 10px;
+  margin-bottom: 20px;
   border-radius: 6px;
-  background-color: #dc3545;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  border: 1px solid #ddd;
 }
 
-.users-list button:hover {
-  background-color: #a71d2a;
+.userlist-list {
+  list-style: none;
+  padding: 0;
+}
+
+.userlist-item {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.userlist-item:hover {
+  background: #f9fafb;
+}
+
+.userlist-email {
+  color: #6b7280;
+}
+
+.userlist-empty {
+  color: #9ca3af;
+  text-align: center;
+  margin-top: 20px;
 }
