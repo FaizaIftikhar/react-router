@@ -1,7 +1,7 @@
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-
+import "./NewSignUp.css"
 const SignupSchema = Yup.object().shape({
   fullName: Yup.string().required("Full Name is required"),
   email: Yup.string().email("Invalid email format").required("Email is required"),
