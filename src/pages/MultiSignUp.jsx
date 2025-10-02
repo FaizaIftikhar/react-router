@@ -1,128 +1,142 @@
-// src/pages/MultiStepForm.jsx
+// MultiStepWithPhones.jsx
 import React, { useState } from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import "./MultiStepForm.css";
+import './MultiStepForm.css'
 
-// Step Schemas
-const stepOneSchema = Yup.object({
-  fullName: Yup.string().required("Full Name is required"),
-  email: Yup.string().email("Invalid email").required("Email is required"),
-});
+// Step-specific validation
+const stepSchemas = [
+  Yup.object({
+    name: Yup.string().required("Name is required"),
+    email: Yup.string().email("Invalid email").required("Email is required"),
+  }),
+  Yup.object({
+    password: Yup.string().min(6, "Min 6 characters").required("Password is required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password"), null], "Passwords must match")
+      .required("Confirm password is required"),
+  }),
+  Yup.object({
+    phoneNumbers: Yup.array()
+      .of(Yup.string().required("Phone number required"))
+      .min(1, "At least one phone number is required"),
+  }),
+];
 
-const stepTwoSchema = Yup.object({
-  password: Yup.string().min(6, "At least 6 chars").required("Password is required"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Passwords must match")
-    .required("Confirm Password is required"),
-});
+const initialValues = {
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  phoneNumbers: [""],
+};
 
-// Full schema (for final validation)
-const fullSchema = stepOneSchema.concat(stepTwoSchema);
+const MultiStepWithPhones = () => {
+  const [step, setStep] = useState(0);
+  const isLastStep = step === stepSchemas.length;
 
-export default function MultiStepForm() {
-  const [step, setStep] = useState(1);
-
-  const initialValues = {
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  };
-
-  const handleNext = async (validateForm, setTouched, values, errors, setStep) => {
-    const currentErrors = await validateForm(values);
-    if (Object.keys(currentErrors).length === 0) {
-      setStep((prev) => prev + 1);
+  const handleSubmit = (values, { setSubmitting }) => {
+    if (!isLastStep) {
+      setStep((s) => s + 1);
+      setSubmitting(false);
     } else {
-      setTouched(
-        Object.fromEntries(Object.keys(currentErrors).map((key) => [key, true]))
-      );
+      alert("✅ Submitted: " + JSON.stringify(values, null, 2));
     }
   };
 
   return (
-    <div className="multistep-container">
-      <h2>Multi-Step Signup</h2>
+    <Formik
+      initialValues={initialValues}
+      validationSchema={stepSchemas[step]}
+      onSubmit={handleSubmit}
+    >
+      {({ values }) => (
+        <Form style={{ maxWidth: "400px", margin: "auto" }}>
+          <h2>Step {step + 1}</h2>
 
-      <Formik
-        initialValues={initialValues}
-        validationSchema={step === 1 ? stepOneSchema : step === 2 ? stepTwoSchema : fullSchema}
-        onSubmit={(values, { resetForm }) => {
-          console.log("✅ Form Submitted:", values);
-          alert("Form submitted successfully!");
-          resetForm();
-          setStep(1);
-        }}
-      >
-        {({ values, errors, touched, validateForm, setTouched }) => (
-          <Form>
-            {/* Step 1 */}
-            {step === 1 && (
-              <>
-                <div className="form-group">
-                  <label htmlFor="fullName">Full Name</label>
-                  <Field name="fullName" type="text" />
-                  <ErrorMessage name="fullName" component="p" className="error-text" />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email">Email</label>
-                  <Field name="email" type="email" />
-                  <ErrorMessage name="email" component="p" className="error-text" />
-                </div>
-              </>
+          {/* Step 1: Name & Email */}
+          {step === 0 && (
+            <>
+              <label>Name</label>
+              <Field name="name" placeholder="Enter your name" />
+              <ErrorMessage name="name" component="div" style={{ color: "red" }} />
+
+              <label>Email</label>
+              <Field name="email" placeholder="Enter your email" />
+              <ErrorMessage name="email" component="div" style={{ color: "red" }} />
+            </>
+          )}
+
+          {/* Step 2: Passwords */}
+          {step === 1 && (
+            <>
+              <label>Password</label>
+              <Field type="password" name="password" placeholder="Enter password" />
+              <ErrorMessage name="password" component="div" style={{ color: "red" }} />
+
+              <label>Confirm Password</label>
+              <Field type="password" name="confirmPassword" placeholder="Confirm password" />
+              <ErrorMessage name="confirmPassword" component="div" style={{ color: "red" }} />
+            </>
+          )}
+
+          {/* Step 3: Phone Numbers (Dynamic Fields) */}
+          {step === 2 && (
+            <>
+              <h3>Phone Numbers</h3>
+              <FieldArray name="phoneNumbers">
+                {({ push, remove }) => (
+                  <div>
+                    {values.phoneNumbers.map((_, index) => (
+                      <div key={index} style={{ marginBottom: "10px" }}>
+                        <Field
+                          name={`phoneNumbers[${index}]`}
+                          placeholder="Enter phone number"
+                        />
+                        <ErrorMessage
+                          name={`phoneNumbers[${index}]`}
+                          component="div"
+                          style={{ color: "red" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          disabled={values.phoneNumbers.length === 1}
+                        >
+                          ❌
+                        </button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => push("")}>
+                      ➕ Add Phone
+                    </button>
+                  </div>
+                )}
+              </FieldArray>
+            </>
+          )}
+
+          {/* Step 4: Summary */}
+          {step === 3 && (
+            <>
+              <h3>Summary</h3>
+              <pre>{JSON.stringify(values, null, 2)}</pre>
+            </>
+          )}
+
+          {/* Navigation Buttons */}
+          <div style={{ marginTop: "20px" }}>
+            {step > 0 && (
+              <button type="button" onClick={() => setStep((s) => s - 1)}>
+                Back
+              </button>
             )}
-
-            {/* Step 2 */}
-            {step === 2 && (
-              <>
-                <div className="form-group">
-                  <label htmlFor="password">Password</label>
-                  <Field name="password" type="password" />
-                  <ErrorMessage name="password" component="p" className="error-text" />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="confirmPassword">Confirm Password</label>
-                  <Field name="confirmPassword" type="password" />
-                  <ErrorMessage name="confirmPassword" component="p" className="error-text" />
-                </div>
-              </>
-            )}
-
-            {/* Step 3 */}
-            {step === 3 && (
-              <div className="summary">
-                <h3>Review Your Details</h3>
-                <p><strong>Full Name:</strong> {values.fullName}</p>
-                <p><strong>Email:</strong> {values.email}</p>
-                <p><strong>Password:</strong> ******</p>
-              </div>
-            )}
-
-            {/* Buttons */}
-            <div className="buttons">
-              {step > 1 && (
-                <button type="button" onClick={() => setStep((s) => s - 1)}>
-                  Back
-                </button>
-              )}
-
-              {step < 3 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleNext(validateForm, setTouched, values, errors, setStep)
-                  }
-                >
-                  Next
-                </button>
-              )}
-
-              {step === 3 && <button type="submit">Submit</button>}
-            </div>
-          </Form>
-        )}
-      </Formik>
-    </div>
+            <button type="submit">{isLastStep ? "Submit" : "Next"}</button>
+          </div>
+        </Form>
+      )}
+    </Formik>
   );
-}
+};
+
+export default MultiStepWithPhones;
