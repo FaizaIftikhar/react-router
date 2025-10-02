@@ -1,142 +1,196 @@
-// MultiStepWithPhones.jsx
 import React, { useState } from "react";
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import './MultiStepForm.css'
+import "./MultiStepForm.css";
 
-// Step-specific validation
-const stepSchemas = [
-  Yup.object({
-    name: Yup.string().required("Name is required"),
-    email: Yup.string().email("Invalid email").required("Email is required"),
-  }),
-  Yup.object({
-    password: Yup.string().min(6, "Min 6 characters").required("Password is required"),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref("password"), null], "Passwords must match")
-      .required("Confirm password is required"),
-  }),
-  Yup.object({
-    phoneNumbers: Yup.array()
-      .of(Yup.string().required("Phone number required"))
-      .min(1, "At least one phone number is required"),
-  }),
-];
+// Validation Schemas
+const stepOneSchema = Yup.object({
+  name: Yup.string().required("Name is required"),
+  email: Yup.string().email("Invalid email").required("Email is required"),
+});
 
-const initialValues = {
-  name: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-  phoneNumbers: [""],
-};
+const stepTwoSchema = Yup.object({
+  password: Yup.string().required("Password is required"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Passwords must match")
+    .required("Confirm Password is required"),
+  phones: Yup.array()
+    .of(Yup.string().required("Phone number required"))
+    .min(1, "At least one phone number required"),
+});
 
-const MultiStepWithPhones = () => {
+const stepThreeSchema = Yup.object({
+  profilePicture: Yup.mixed()
+    .required("Profile picture is required")
+    .test(
+      "fileSize",
+      "File too large. Max 2MB",
+      (value) => value && value.size <= 2 * 1024 * 1024
+    )
+    .test(
+      "fileFormat",
+      "Unsupported Format. Only jpg/png",
+      (value) => value && ["image/jpeg", "image/png"].includes(value.type)
+    ),
+});
+
+const MultiStepFormWithFileUpload = () => {
   const [step, setStep] = useState(0);
-  const isLastStep = step === stepSchemas.length;
+  const [preview, setPreview] = useState(null);
 
-  const handleSubmit = (values, { setSubmitting }) => {
-    if (!isLastStep) {
-      setStep((s) => s + 1);
-      setSubmitting(false);
-    } else {
-      alert("✅ Submitted: " + JSON.stringify(values, null, 2));
+  const initialValues = {
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phones: [""],
+    profilePicture: null,
+  };
+
+  const steps = [
+    { label: "Step 1: Name & Email", validationSchema: stepOneSchema },
+    { label: "Step 2: Password & Phones", validationSchema: stepTwoSchema },
+    { label: "Step 3: Profile Picture", validationSchema: stepThreeSchema },
+  ];
+
+  const handleNext = async (values, actions) => {
+    try {
+      await steps[step].validationSchema.validate(values, { abortEarly: false });
+      setStep(step + 1);
+    } catch (err) {
+      if (err.inner) {
+        const errors = {};
+        err.inner.forEach((error) => {
+          if (!errors[error.path]) errors[error.path] = error.message;
+        });
+        actions.setErrors(errors);
+      }
     }
   };
 
+  const handleBack = () => setStep(step - 1);
+
+  const handleSubmit = (values) => {
+    console.log("Form Submitted ✅", values);
+    alert("Form Submitted! Check console for data.");
+  };
+
   return (
-    <Formik
-      initialValues={initialValues}
-      validationSchema={stepSchemas[step]}
-      onSubmit={handleSubmit}
-    >
-      {({ values }) => (
-        <Form style={{ maxWidth: "400px", margin: "auto" }}>
-          <h2>Step {step + 1}</h2>
+    <div className="form-container">
+      <h2>Multi-Step Registration</h2>
+      <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+        {({ values, setFieldValue, errors, touched }) => (
+          <Form>
+            <h3>{steps[step].label}</h3>
 
-          {/* Step 1: Name & Email */}
-          {step === 0 && (
-            <>
-              <label>Name</label>
-              <Field name="name" placeholder="Enter your name" />
-              <ErrorMessage name="name" component="div" style={{ color: "red" }} />
+            {/* Step 1 */}
+            {step === 0 && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="name">Full Name</label>
+                  <Field name="name" type="text" />
+                  <ErrorMessage name="name" component="p" className="error" />
+                </div>
 
-              <label>Email</label>
-              <Field name="email" placeholder="Enter your email" />
-              <ErrorMessage name="email" component="div" style={{ color: "red" }} />
-            </>
-          )}
-
-          {/* Step 2: Passwords */}
-          {step === 1 && (
-            <>
-              <label>Password</label>
-              <Field type="password" name="password" placeholder="Enter password" />
-              <ErrorMessage name="password" component="div" style={{ color: "red" }} />
-
-              <label>Confirm Password</label>
-              <Field type="password" name="confirmPassword" placeholder="Confirm password" />
-              <ErrorMessage name="confirmPassword" component="div" style={{ color: "red" }} />
-            </>
-          )}
-
-          {/* Step 3: Phone Numbers (Dynamic Fields) */}
-          {step === 2 && (
-            <>
-              <h3>Phone Numbers</h3>
-              <FieldArray name="phoneNumbers">
-                {({ push, remove }) => (
-                  <div>
-                    {values.phoneNumbers.map((_, index) => (
-                      <div key={index} style={{ marginBottom: "10px" }}>
-                        <Field
-                          name={`phoneNumbers[${index}]`}
-                          placeholder="Enter phone number"
-                        />
-                        <ErrorMessage
-                          name={`phoneNumbers[${index}]`}
-                          component="div"
-                          style={{ color: "red" }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => remove(index)}
-                          disabled={values.phoneNumbers.length === 1}
-                        >
-                          ❌
-                        </button>
-                      </div>
-                    ))}
-                    <button type="button" onClick={() => push("")}>
-                      ➕ Add Phone
-                    </button>
-                  </div>
-                )}
-              </FieldArray>
-            </>
-          )}
-
-          {/* Step 4: Summary */}
-          {step === 3 && (
-            <>
-              <h3>Summary</h3>
-              <pre>{JSON.stringify(values, null, 2)}</pre>
-            </>
-          )}
-
-          {/* Navigation Buttons */}
-          <div style={{ marginTop: "20px" }}>
-            {step > 0 && (
-              <button type="button" onClick={() => setStep((s) => s - 1)}>
-                Back
-              </button>
+                <div className="form-group">
+                  <label htmlFor="email">Email</label>
+                  <Field name="email" type="email" />
+                  <ErrorMessage name="email" component="p" className="error" />
+                </div>
+              </>
             )}
-            <button type="submit">{isLastStep ? "Submit" : "Next"}</button>
-          </div>
-        </Form>
-      )}
-    </Formik>
+
+            {/* Step 2 */}
+            {step === 1 && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="password">Password</label>
+                  <Field name="password" type="password" />
+                  <ErrorMessage name="password" component="p" className="error" />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">Confirm Password</label>
+                  <Field name="confirmPassword" type="password" />
+                  <ErrorMessage
+                    name="confirmPassword"
+                    component="p"
+                    className="error"
+                  />
+                </div>
+
+                <FieldArray name="phones">
+                  {({ push, remove }) => (
+                    <div className="form-group">
+                      <label>Phone Numbers</label>
+                      {values.phones.map((_, index) => (
+                        <div key={index} className="phone-field">
+                          <Field name={`phones[${index}]`} type="text" />
+                          <button type="button" onClick={() => remove(index)}>
+                            -
+                          </button>
+                          {index === values.phones.length - 1 && (
+                            <button type="button" onClick={() => push("")}>
+                              +
+                            </button>
+                          )}
+                          <ErrorMessage
+                            name={`phones[${index}]`}
+                            component="p"
+                            className="error"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </FieldArray>
+              </>
+            )}
+
+            {/* Step 3 */}
+            {step === 2 && (
+              <>
+                <div className="form-group">
+                  <label>Profile Picture (jpg/png, max 2MB)</label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    onChange={(event) => {
+                      const file = event.currentTarget.files[0];
+                      setFieldValue("profilePicture", file);
+                      if (file) setPreview(URL.createObjectURL(file));
+                    }}
+                  />
+                  {preview && (
+                    <img src={preview} alt="Preview" className="preview-img" />
+                  )}
+                  <ErrorMessage
+                    name="profilePicture"
+                    component="p"
+                    className="error"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="button-group">
+              {step > 0 && (
+                <button type="button" onClick={handleBack}>
+                  Back
+                </button>
+              )}
+              {step < steps.length - 1 && (
+                <button type="button" onClick={() => handleNext(values, { setErrors: () => {} })}>
+                  Next
+                </button>
+              )}
+              {step === steps.length - 1 && <button type="submit">Submit</button>}
+            </div>
+          </Form>
+        )}
+      </Formik>
+    </div>
   );
 };
 
-export default MultiStepWithPhones;
+export default MultiStepFormWithFileUpload;
