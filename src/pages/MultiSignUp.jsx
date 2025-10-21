@@ -70,8 +70,16 @@ const MultiStepFormWithFileUpload = () => {
 
   const handleBack = () => setStep(step - 1);
 
+  const handleFileChange = (event, setFieldValue) => {
+    const file = event.currentTarget.files[0];
+    setFieldValue("profilePicture", file);
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = (values) => {
-    console.log("Form Submitted ✅", values);
+    console.log("Form Submitted", values);
     alert("Form Submitted! Check console for data.");
   };
 
@@ -155,11 +163,7 @@ const MultiStepFormWithFileUpload = () => {
                   <input
                     type="file"
                     accept="image/jpeg,image/png"
-                    onChange={(event) => {
-                      const file = event.currentTarget.files[0];
-                      setFieldValue("profilePicture", file);
-                      if (file) setPreview(URL.createObjectURL(file));
-                    }}
+                    onChange={(event) => handleFileChange(event, setFieldValue)} 
                   />
                   {preview && (
                     <img src={preview} alt="Preview" className="preview-img" />
@@ -180,7 +184,12 @@ const MultiStepFormWithFileUpload = () => {
                 </button>
               )}
               {step < steps.length - 1 && (
-                <button type="button" onClick={() => handleNext(values, { setErrors: () => {} })}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleNext(values, { setErrors: () => {} })
+                  }
+                >
                   Next
                 </button>
               )}
